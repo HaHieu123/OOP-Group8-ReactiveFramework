@@ -244,3 +244,123 @@ MIT License — xem [LICENSE](LICENSE) để biết chi tiết.
 
 ## Đóng góp
 Mọi đóng góp đều được chào đón! Xem [CONTRIBUTING.md](CONTRIBUTING.md) để biết chi tiết.
+
+## File 7: Xóa file rác trong source
+
+Trước khi commit hoặc push lên GitHub, xóa các file sinh ra khi chạy demo/test/benchmark để tránh commit nhầm:
+
+```powershell
+cd D:\reactive-framework
+
+# Xóa file output trong build (nếu có)
+Remove-Item -Force build\Release\alerts.json -ErrorAction SilentlyContinue
+Remove-Item -Force build\Release\test_output.csv -ErrorAction SilentlyContinue
+Remove-Item -Force build\Release\test_tee.csv -ErrorAction SilentlyContinue
+
+# Xóa thư mục build hoàn toàn
+# (sẽ được .gitignore bỏ qua, nhưng xóa cho sạch)
+Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
+
+Write-Host "Da xoa file rac"
+```
+
+### Giải thích từng lệnh
+
+| Lệnh | Tác dụng |
+|---|---|
+| `Remove-Item -Force <file>` | Xóa file, kể cả file read-only |
+| `-ErrorAction SilentlyContinue` | Không báo lỗi nếu file không tồn tại |
+| `Remove-Item -Recurse -Force build` | Xóa cả thư mục `build/` và nội dung bên trong |
+| `Write-Host "..."` | In thông báo xác nhận |
+
+### Tại sao cần xóa?
+
+Các file này **được sinh ra khi chạy** chương trình, không phải source code:
+
+| File | Sinh ra bởi | Khi nào |
+|---|---|---|
+| `alerts.json` | `reactive_demo.exe` | Chạy demo IoT |
+| `test_output.csv` | `test_sink.exe` | Chạy test sink |
+| `test_tee.csv` | `test_sink.exe` | Chạy test TeeSink |
+| `build/` | CMake + MSVC | Mỗi lần build |
+
+Nếu commit nhầm, repo GitHub sẽ có **hàng chục MB file rác** không cần thiết.
+
+### Kiểm tra trước khi commit
+
+Sau khi xóa, chạy lệnh sau để xác nhận:
+
+```powershell
+git status
+```
+
+**Kết quả mong đợi:** Không thấy `build/`, `alerts.json`, `test_output.csv`, `test_tee.csv` trong danh sách.
+
+Nếu vẫn thấy → kiểm tra file `.gitignore` đã có các dòng sau chưa:
+
+```gitignore
+build/
+alerts.json
+test_output.csv
+test_tee.csv
+*.log
+```
+
+### Tự động hóa — thêm vào script build
+
+Nếu bạn có file `scripts/build.ps1`, thêm đoạn clean vào đầu script:
+
+```powershell
+# scripts/build.ps1
+
+# Clean trước khi build
+Write-Host "=== Cleaning old build ===" -ForegroundColor Yellow
+Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
+Remove-Item -Force build\Release\alerts.json -ErrorAction SilentlyContinue
+Remove-Item -Force build\Release\test_output.csv -ErrorAction SilentlyContinue
+Remove-Item -Force build\Release\test_tee.csv -ErrorAction SilentlyContinue
+
+# ... phần build còn lại
+```
+
+### Tương đương trên Linux/macOS
+
+Nếu bạn dùng Linux/macOS, lệnh tương đương là:
+
+```bash
+cd reactive-framework
+
+# Xóa file output
+rm -f build/Release/alerts.json
+rm -f build/Release/test_output.csv
+rm -f build/Release/test_tee.csv
+
+# Xóa thư mục build
+rm -rf build
+
+echo "Da xoa file rac"
+```
+
+### Cách chạy định kỳ (tùy chọn)
+
+Nếu bạn muốn clean trước **mọi lần build**, tạo alias trong PowerShell profile:
+
+```powershell
+# Mở profile
+notepad $PROFILE
+
+# Thêm dòng này
+function rf-clean {
+    cd D:\reactive-framework
+    Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
+    Remove-Item -Force build\Release\alerts.json -ErrorAction SilentlyContinue
+    Remove-Item -Force build\Release\test_output.csv -ErrorAction SilentlyContinue
+    Remove-Item -Force build\Release\test_tee.csv -ErrorAction SilentlyContinue
+    Write-Host "Da clean reactive-framework" -ForegroundColor Green
+}
+
+# Lưu file, đóng Notepad
+# Mở lại PowerShell, gõ: rf-clean
+```
+
+Sau đó chỉ cần gõ `rf-clean` ở bất kỳ đâu là xóa sạch build + file rác.
