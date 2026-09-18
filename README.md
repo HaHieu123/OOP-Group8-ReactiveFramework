@@ -89,6 +89,9 @@ ctest -C Release --output-on-failure
 #include <reactive/DataStream.hpp>
 #include <reactive/Sink.hpp>
 
+#include <iostream>
+#include <vector>
+
 using namespace reactive;
 
 int main() {
@@ -100,6 +103,8 @@ int main() {
         .subscribe([](const int& v) {
             std::cout << v << '\n';
         });
+
+    return 0;
 }
 ```
 

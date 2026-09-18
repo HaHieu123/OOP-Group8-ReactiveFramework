@@ -190,6 +190,18 @@ private:
 // MAIN
 // ============================================================================
 int main() {
+    std::cout << "=== Quick Start Example ===\n";
+    
+    std::vector<int> data = {1, 2, 3, 4, 5, 6, 7, 8};
+    
+    DataStream<int>::fromIterable(data)
+        .filter([](const int& x) { return x % 2 == 0; })
+        .map([](const int& x) { return x * 10; })
+        .subscribe([](const int& v) {
+            std::cout << v << '\n';
+        });
+    
+    std::cout << "\n=== IoT Demo ===\n";
     std::signal(SIGINT, signalHandler);
 
     std::cout << "+===================================================+\n";
