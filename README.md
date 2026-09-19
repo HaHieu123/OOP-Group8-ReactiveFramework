@@ -245,25 +245,6 @@ MIT License — xem [LICENSE](LICENSE) để biết chi tiết.
 ## Đóng góp
 Mọi đóng góp đều được chào đón! Xem [CONTRIBUTING.md](CONTRIBUTING.md) để biết chi tiết.
 
-## File 7: Xóa file rác trong source
-
-Trước khi commit hoặc push lên GitHub, xóa các file sinh ra khi chạy demo/test/benchmark để tránh commit nhầm:
-
-```powershell
-cd D:\reactive-framework
-
-# Xóa file output trong build (nếu có)
-Remove-Item -Force build\Release\alerts.json -ErrorAction SilentlyContinue
-Remove-Item -Force build\Release\test_output.csv -ErrorAction SilentlyContinue
-Remove-Item -Force build\Release\test_tee.csv -ErrorAction SilentlyContinue
-
-# Xóa thư mục build hoàn toàn
-# (sẽ được .gitignore bỏ qua, nhưng xóa cho sạch)
-Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
-
-Write-Host "Da xoa file rac"
-```
-
 ### Giải thích từng lệnh
 
 | Lệnh | Tác dụng |
