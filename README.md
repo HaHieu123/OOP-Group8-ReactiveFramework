@@ -81,6 +81,197 @@ ctest -C Release --output-on-failure
 
 ---
 
+## Scripts — Tự động hóa build/test/clean
+
+Dự án cung cấp sẵn các script PowerShell (Windows) và Bash (Linux/macOS) để tự động hóa các tác vụ thường gặp.
+
+### Windows — PowerShell
+
+| Script | Mục đích | Cách dùng |
+|---|---|---|
+| `scripts/build.ps1` | Build dự án (có thể kèm tests/benchmarks) | `.\scripts\build.ps1 -All` |
+| `scripts\clean.ps1` | Xóa `build/` và file rác | `.\scripts\clean.ps1` |
+| `scripts\run_tests.ps1` | Chạy tất cả unit tests | `.\scripts\run_tests.ps1` |
+| `scripts\run_demo.ps1` | Chạy demo IoT | `.\scripts\run_demo.ps1` |
+
+#### Build — `scripts\build.ps1`
+
+```powershell
+# Build cơ bản (chỉ demo)
+.\scripts\build.ps1
+
+# Build + unit tests
+.\scripts\build.ps1 -Tests
+
+# Build + benchmarks
+.\scripts\build.ps1 -Benchmarks
+
+# Build tất cả (tests + benchmarks)
+.\scripts\build.ps1 -All
+
+# Build tất cả + clean trước
+.\scripts\build.ps1 -All -Clean
+
+# Build bản Debug (thay vì Release mặc định)
+.\scripts\build.ps1 -Tests -Debug
+```
+
+#### Clean — `scripts\clean.ps1`
+
+```powershell
+# Xóa thư mục build/ + file rác (alerts.json, test_output.csv, test_tee.csv)
+.\scripts\clean.ps1
+```
+
+#### Chạy tests — `scripts\run_tests.ps1`
+
+```powershell
+# Chạy tất cả unit tests
+.\scripts\run_tests.ps1
+
+# Chạy với output chi tiết (verbose)
+.\scripts\run_tests.ps1 -Verbose
+
+# Chạy bản Debug
+.\scripts\run_tests.ps1 -Debug
+```
+
+#### Chạy demo — `scripts\run_demo.ps1`
+
+```powershell
+# Chạy demo IoT (5 giây, 3 sensors @ 100 Hz)
+.\scripts\run_demo.ps1
+
+# Chạy bản Debug
+.\scripts\run_demo.ps1 -Debug
+```
+
+**Lưu ý:** Nếu PowerShell báo lỗi `execution of scripts is disabled`, chạy một lần:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
+
+Rồi nhấn `Y` để xác nhận.
+
+---
+
+### Linux / macOS — Bash
+
+| Script | Mục đích | Cách dùng |
+|---|---|---|
+| `scripts/build.sh` | Build dự án | `./scripts/build.sh --all` |
+| `scripts/clean.sh` | Xóa `build/` và file rác | `./scripts/clean.sh` |
+
+#### Cấp quyền chạy (chỉ lần đầu)
+
+```bash
+chmod +x scripts/*.sh
+```
+
+#### Build — `scripts/build.sh`
+
+```bash
+# Build cơ bản
+./scripts/build.sh
+
+# Build + tests
+./scripts/build.sh --tests
+
+# Build + benchmarks
+./scripts/build.sh --benchmarks
+
+# Build tất cả
+./scripts/build.sh --all
+
+# Build tất cả + clean trước
+./scripts/build.sh --all --clean
+
+# Build Debug
+./scripts/build.sh --tests --debug
+
+# Xem hướng dẫn
+./scripts/build.sh --help
+```
+
+#### Clean — `scripts/clean.sh`
+
+```bash
+# Xóa build/ + file rác
+./scripts/clean.sh
+```
+
+---
+
+### Quy trình làm việc điển hình
+
+#### Lần đầu setup
+
+```powershell
+# Windows
+cd D:\reactive-framework
+.\scripts\build.ps1 -All          # Build tất cả
+.\scripts\run_tests.ps1           # Verify tests pass
+.\scripts\run_demo.ps1            # Chạy demo
+```
+
+```bash
+# Linux/macOS
+cd reactive-framework
+./scripts/build.sh --all
+cd build && ctest -C Release && cd ..
+./build/reactive_demo
+```
+
+#### Sau khi sửa code
+
+```powershell
+# Windows
+.\scripts\clean.ps1               # Dọn sạch
+.\scripts\build.ps1 -All -Clean   # Build lại từ đầu
+.\scripts\run_tests.ps1           # Verify
+```
+
+```bash
+# Linux/macOS
+./scripts/clean.sh
+./scripts/build.sh --all --clean
+cd build && ctest -C Release && cd ..
+```
+
+#### Trước khi commit/push GitHub
+
+```powershell
+# 1. Clean để xóa file rác
+.\scripts\clean.ps1
+
+# 2. Kiểm tra git status
+git status
+# Không được thấy: build/, alerts.json, test_output.csv, test_tee.csv
+
+# 3. Commit + push
+git add .
+git commit -m "..."
+git push origin main
+```
+
+---
+
+### Tổng hợp lệnh nhanh
+
+| Tác vụ | Windows | Linux/macOS |
+|---|---|---|
+| Build cơ bản | `.\scripts\build.ps1` | `./scripts/build.sh` |
+| Build + tests | `.\scripts\build.ps1 -Tests` | `./scripts/build.sh --tests` |
+| Build tất cả | `.\scripts\build.ps1 -All` | `./scripts/build.sh --all` |
+| Build + clean | `.\scripts\build.ps1 -All -Clean` | `./scripts/build.sh --all --clean` |
+| Xóa file rác | `.\scripts\clean.ps1` | `./scripts/clean.sh` |
+| Chạy tests | `.\scripts\run_tests.ps1` | `cd build && ctest -C Release` |
+| Chạy demo | `.\scripts\run_demo.ps1` | `./build/reactive_demo` |
+| Chạy benchmark | `.\build\Release\bench_throughput.exe` | `./build/bench_throughput` |
+
+---
+
 ## Ví dụ sử dụng
 
 ### Ví dụ 1: Cơ bản — filter + map
